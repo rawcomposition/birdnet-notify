@@ -14,6 +14,7 @@ from typing import List, Dict, Set
 
 class BirdNETNotifier:
     def __init__(self, config_path: str):
+        print("BirdNETNotifier __init__ started")
         self.config_path = Path(config_path)
         self.config = self.load_config()
 
@@ -30,9 +31,11 @@ class BirdNETNotifier:
         self.running = False
 
         self.setup_logging()
+        print("Logger setup complete")
         self.logger.info("Setting up last_processed_id...")
         self.last_processed_id = self.get_current_max_id()
         self.logger.info(f"Last processed ID set to: {self.last_processed_id}")
+        print("BirdNETNotifier __init__ completed")
 
     def normalize_species_name(self, species_name: str) -> str:
         if not species_name:
