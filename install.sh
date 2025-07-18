@@ -91,6 +91,12 @@ else
 fi
 
 echo "Creating systemd service..."
+CURRENT_USER=$(logname || who am i | awk '{print $1}' || echo $SUDO_USER)
+if [ -z "$CURRENT_USER" ]; then
+    echo "Error: Could not determine current user"
+    exit 1
+fi
+
 cat > "$SERVICE_FILE" << EOF
 [Unit]
 Description=BirdNET-Go Notification Service
@@ -98,8 +104,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
-Group=pi
+User=$CURRENT_USER
+Group=$CURRENT_USER
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$PYTHON_PATH $INSTALL_DIR/birdnet_notify.py
 Restart=always
