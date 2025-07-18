@@ -6,17 +6,15 @@ import time
 import os
 import sys
 import logging
+import logging.handlers
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Set
 
-print("BirdNET script starting...")
-
 
 class BirdNETNotifier:
     def __init__(self, config_path: str):
-        print("BirdNETNotifier __init__ started")
         self.config_path = Path(config_path)
         self.config = self.load_config()
 
@@ -33,11 +31,7 @@ class BirdNETNotifier:
         self.running = False
 
         self.setup_logging()
-        print("Logger setup complete")
-        self.logger.info("Setting up last_processed_id...")
         self.last_processed_id = self.get_current_max_id()
-        self.logger.info(f"Last processed ID set to: {self.last_processed_id}")
-        print("BirdNETNotifier __init__ completed")
 
     def normalize_species_name(self, species_name: str) -> str:
         if not species_name:
@@ -55,7 +49,11 @@ class BirdNETNotifier:
             level=getattr(logging, log_level),
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler(log_file),
+                logging.handlers.RotatingFileHandler(
+                    log_file, 
+                    maxBytes=1024*1024,  # 1MB per file
+                    backupCount=3        # Keep 3 backup files
+                ),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -140,7 +138,6 @@ class BirdNETNotifier:
             result = cursor.fetchone()
             max_id = result[0] if result[0] else 0
             conn.close()
-            self.logger.info(f"Current max ID in database: {max_id}")
             return max_id
         except Exception as e:
             self.logger.error(f"Error getting current max ID: {e}")
@@ -187,6 +184,7 @@ class BirdNETNotifier:
         normalized_species = self.normalize_species_name(species_name)
 
         if normalized_species in self.ignored_species:
+            self.logger.debug(f"Species '{species_name}' is in ignore list")
             return False
 
         now = datetime.now()
@@ -195,6 +193,8 @@ class BirdNETNotifier:
         if last_notified_time:
             time_diff = now - last_notified_time
             if time_diff < timedelta(minutes=self.cooldown_minutes):
+                remaining_minutes = self.cooldown_minutes - (time_diff.total_seconds() / 60)
+                self.logger.info(f"Species '{species_name}' detected but in cooldown ({remaining_minutes:.1f} minutes remaining)")
                 return False
 
         return True
@@ -265,12 +265,18 @@ class BirdNETNotifier:
 
         self.running = True
 
+        poll_count = 0
         while self.running:
             try:
                 detections = self.get_new_detections()
                 if detections:
                     self.logger.info(f"Found {len(detections)} new detections")
                 self.process_detections(detections)
+                
+                poll_count += 1
+                if poll_count % 12 == 0:  # Log every minute (12 * 5 seconds)
+                    self.logger.info(f"Still polling... (poll #{poll_count})")
+                
                 time.sleep(self.poll_interval)
             except KeyboardInterrupt:
                 self.logger.info("Received interrupt signal, shutting down...")
