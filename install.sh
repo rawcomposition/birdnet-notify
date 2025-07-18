@@ -77,11 +77,8 @@ if command -v python3 &> /dev/null; then
     
     PYTHON_PATH="$INSTALL_DIR/venv/bin/python"
     
-    echo "Verifying installation..."
     if [ -f "$PYTHON_PATH" ]; then
-        echo "Virtual environment created successfully at $PYTHON_PATH"
-        echo "Testing pip installation..."
-        "$PYTHON_PATH" -c "import requests; print('requests module imported successfully')"
+        echo "Virtual environment created successfully"
     else
         echo "Error: Virtual environment creation failed"
         exit 1
