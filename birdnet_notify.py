@@ -30,7 +30,9 @@ class BirdNETNotifier:
         self.running = False
 
         self.setup_logging()
+        self.logger.info("Setting up last_processed_id...")
         self.last_processed_id = self.get_current_max_id()
+        self.logger.info(f"Last processed ID set to: {self.last_processed_id}")
 
     def normalize_species_name(self, species_name: str) -> str:
         if not species_name:
