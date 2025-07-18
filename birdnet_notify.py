@@ -264,23 +264,18 @@ class BirdNETNotifier:
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 birdnet_notify.py <POST_URL>")
-        print("Example: python3 birdnet_notify.py https://ntfy.sh/your-topic")
-        sys.exit(1)
-
-    post_url = sys.argv[1]
-
     script_dir = Path(__file__).parent
     config_path = script_dir / 'config.conf'
 
     notifier = BirdNETNotifier(config_path)
 
-    if not notifier.post_url:
-        notifier.config['post_url'] = post_url
-        notifier.save_config()
-        notifier.post_url = post_url
-        notifier.logger.info(f"Updated config with POST_URL: {post_url}")
+    if len(sys.argv) == 2:
+        post_url = sys.argv[1]
+        if not notifier.post_url:
+            notifier.config['post_url'] = post_url
+            notifier.save_config()
+            notifier.post_url = post_url
+            notifier.logger.info(f"Updated config with POST_URL: {post_url}")
 
     notifier.run()
 
