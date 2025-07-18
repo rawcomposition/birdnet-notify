@@ -55,12 +55,17 @@ EOF
 fi
 
 echo "Installing Python dependencies..."
-if command -v pip3 &> /dev/null; then
-    pip3 install -r "$INSTALL_DIR/requirements.txt"
+if command -v python3 &> /dev/null; then
+    echo "Creating virtual environment..."
+    python3 -m venv "$INSTALL_DIR/venv"
+    echo "Installing dependencies in virtual environment..."
+    "$INSTALL_DIR/venv/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+    PYTHON_PATH="$INSTALL_DIR/venv/bin/python"
 else
-    echo "Warning: pip3 not found. Please install requests manually:"
-    echo "  sudo apt-get install python3-pip"
-    echo "  pip3 install requests"
+    echo "Error: python3 not found. Please install python3 and python3-venv:"
+    echo "  sudo apt-get update"
+    echo "  sudo apt-get install python3 python3-venv"
+    exit 1
 fi
 
 echo "Creating systemd service..."
@@ -74,7 +79,7 @@ Type=simple
 User=pi
 Group=pi
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/usr/bin/python3 $INSTALL_DIR/birdnet_notify.py
+ExecStart=$PYTHON_PATH $INSTALL_DIR/birdnet_notify.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
