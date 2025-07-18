@@ -37,7 +37,7 @@ max_species = 6
 poll_interval = 5
 cooldown_minutes = 10
 log_level = INFO
-log_file = /var/log/birdnet_notify.log
+log_file = $INSTALL_DIR/birdnet_notify.log
 EOF
 else
     echo "Updating POST URL in existing configuration..."
@@ -91,11 +91,12 @@ else
 fi
 
 echo "Creating systemd service..."
-CURRENT_USER=$(logname || who am i | awk '{print $1}' || echo $SUDO_USER)
+CURRENT_USER=${SUDO_USER:-$(logname)}
 if [ -z "$CURRENT_USER" ]; then
-    echo "Error: Could not determine current user"
+    echo "Error: Could not determine current user. Please run with sudo."
     exit 1
 fi
+echo "Detected user: $CURRENT_USER"
 
 cat > "$SERVICE_FILE" << EOF
 [Unit]
@@ -119,6 +120,9 @@ EOF
 
 echo "Reloading systemd..."
 systemctl daemon-reload
+
+echo "Setting permissions..."
+chown -R "$CURRENT_USER:$CURRENT_USER" "$INSTALL_DIR"
 
 echo "Enabling and starting service..."
 systemctl enable "$SERVICE_NAME"
