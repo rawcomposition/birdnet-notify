@@ -56,11 +56,28 @@ fi
 
 echo "Installing Python dependencies..."
 if command -v python3 &> /dev/null; then
+    echo "Checking for python3-venv..."
+    if ! python3 -c "import venv" 2>/dev/null; then
+        echo "Installing python3-venv..."
+        apt-get update
+        apt-get install -y python3-venv
+    fi
+    
     echo "Creating virtual environment..."
     python3 -m venv "$INSTALL_DIR/venv"
+    
     echo "Installing dependencies in virtual environment..."
+    "$INSTALL_DIR/venv/bin/pip" install --upgrade pip
     "$INSTALL_DIR/venv/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
     PYTHON_PATH="$INSTALL_DIR/venv/bin/python"
+    
+    echo "Verifying installation..."
+    if [ -f "$PYTHON_PATH" ]; then
+        echo "Virtual environment created successfully at $PYTHON_PATH"
+    else
+        echo "Error: Virtual environment creation failed"
+        exit 1
+    fi
 else
     echo "Error: python3 not found. Please install python3 and python3-venv:"
     echo "  sudo apt-get update"
