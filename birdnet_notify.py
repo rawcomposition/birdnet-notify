@@ -27,10 +27,10 @@ class BirdNETNotifier:
         self.ignored_species = self.load_ignored_species()
 
         self.last_notified = {}  # species -> timestamp
-        self.last_processed_id = 0
         self.running = False
 
         self.setup_logging()
+        self.last_processed_id = self.get_current_max_id()
 
     def normalize_species_name(self, species_name: str) -> str:
         if not species_name:
@@ -124,6 +124,20 @@ class BirdNETNotifier:
                 print(f"Error creating ignore file: {e}")
 
         return ignored
+
+    def get_current_max_id(self) -> int:
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT MAX(id) FROM notes")
+            result = cursor.fetchone()
+            max_id = result[0] if result[0] else 0
+            conn.close()
+            self.logger.info(f"Current max ID in database: {max_id}")
+            return max_id
+        except Exception as e:
+            self.logger.error(f"Error getting current max ID: {e}")
+            return 0
 
     def get_new_detections(self) -> List[Dict]:
         try:
@@ -219,10 +233,10 @@ class BirdNETNotifier:
 
             self.last_processed_id = max(self.last_processed_id, detection_id)
 
-            for species_name in [scientific_name, common_name]:
-                if self.should_notify_species(species_name):
-                    species_to_notify.append(species_name)
-                    self.last_notified[self.normalize_species_name(species_name)] = now
+            species_name = common_name if common_name else scientific_name
+            if self.should_notify_species(species_name):
+                species_to_notify.append(species_name)
+                self.last_notified[self.normalize_species_name(species_name)] = now
 
         if species_to_notify:
             self.send_notification(species_to_notify)
@@ -247,6 +261,8 @@ class BirdNETNotifier:
         while self.running:
             try:
                 detections = self.get_new_detections()
+                if detections:
+                    self.logger.info(f"Found {len(detections)} new detections")
                 self.process_detections(detections)
                 time.sleep(self.poll_interval)
             except KeyboardInterrupt:
