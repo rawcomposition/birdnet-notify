@@ -63,17 +63,25 @@ if command -v python3 &> /dev/null; then
         apt-get install -y python3-venv
     fi
     
+    echo "Removing existing virtual environment if present..."
+    rm -rf "$INSTALL_DIR/venv"
+    
     echo "Creating virtual environment..."
     python3 -m venv "$INSTALL_DIR/venv"
     
-    echo "Installing dependencies in virtual environment..."
-    "$INSTALL_DIR/venv/bin/pip" install --upgrade pip
-    "$INSTALL_DIR/venv/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+    echo "Activating virtual environment and installing dependencies..."
+    source "$INSTALL_DIR/venv/bin/activate"
+    pip install --upgrade pip
+    pip install -r "$INSTALL_DIR/requirements.txt"
+    deactivate
+    
     PYTHON_PATH="$INSTALL_DIR/venv/bin/python"
     
     echo "Verifying installation..."
     if [ -f "$PYTHON_PATH" ]; then
         echo "Virtual environment created successfully at $PYTHON_PATH"
+        echo "Testing pip installation..."
+        "$PYTHON_PATH" -c "import requests; print('requests module imported successfully')"
     else
         echo "Error: Virtual environment creation failed"
         exit 1
