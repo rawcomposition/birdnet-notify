@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Set
 
+print("BirdNET script starting...")
+
 
 class BirdNETNotifier:
     def __init__(self, config_path: str):
