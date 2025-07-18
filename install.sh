@@ -37,7 +37,6 @@ max_species = 6
 poll_interval = 5
 cooldown_minutes = 10
 log_level = INFO
-log_file = $INSTALL_DIR/birdnet_notify.log
 EOF
 else
     echo "Updating POST URL in existing configuration..."

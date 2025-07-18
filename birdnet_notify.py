@@ -42,7 +42,7 @@ class BirdNETNotifier:
 
     def setup_logging(self):
         log_level = self.config.get('log_level', 'INFO').upper()
-        log_file = self.config.get('log_file', 'birdnet_notify.log')
+        log_file = self.config_path.parent / 'birdnet_notify.log'
 
         logging.basicConfig(
             level=getattr(logging, log_level),
@@ -80,8 +80,7 @@ class BirdNETNotifier:
             'max_species': '6',
             'poll_interval': '5',
             'cooldown_minutes': '10',
-            'log_level': 'INFO',
-            'log_file': 'birdnet_notify.log'
+            'log_level': 'INFO'
         }
 
         try:
