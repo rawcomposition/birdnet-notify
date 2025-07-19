@@ -10,7 +10,7 @@ curl -sSL https://raw.githubusercontent.com/rawcomposition/birdnet-notify/main/i
 
 ## Configuration
 
-### `config.conf`
+#### `config.conf`
 
 `sudo nano /opt/birdnet-notify/config.conf`
 
@@ -24,7 +24,7 @@ log_level = INFO
 log_file = /var/log/birdnet_notify.log
 ```
 
-### `ignore_species.txt`
+#### `ignore_species.txt`
 
 `sudo nano /opt/birdnet-notify/ignore_species.txt`
 
